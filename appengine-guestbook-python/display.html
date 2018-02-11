@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+  <head>
+    <!-- [START css] -->
+    <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap-responsive.css">
+    <!-- [END css] -->
+    <style type="text/css">
+      body {
+        padding-top: 40px;
+        padding-bottom: 40px;
+        background-color: #f5f5f5;
+      }
+      blockquote {
+        margin-bottom: 10px;
+        border-left-color: #bbb;
+      }
+      form {
+        margin-top: 10px;
+      }
+      .form-signin input[type="text"] {
+        font-size: 16px;
+        height: auto;
+        margin-bottom: 15px;
+        padding: 7px 9px;
+      }
+      .row {
+        margin-left: 0px;
+        margin-top: 10px;
+        overflow: scroll;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+        <div class="container">
+            <h2>Welcome in Romain Amuat's Wine Cave.</h2> 
+        </div>
+    </div>
+    <div class="body">
+    <div class="container">
+        <div class="container">
+            <p><a href="display?category=red">Browse Red Wines</a></p>
+            <p><a href="display?category=white">Browse White Wines</a></p>
+            <p><a href="display?category=rose">Browse Rosé Wines</a></p>
+            <p><a href="display?category=sparkling">Browse White Wines</a></p>
+        </div>
+        <div class="container">
+            <p><a href="search">Search for wine</a></p>
+        </div>
+        <div class="container">
+            <p><a href="enter">Enter a new wine</a></p>
+        </div>
+    </div>
+    </div>
+  </body>
+{% endautoescape %}
+<html>
+</html>
