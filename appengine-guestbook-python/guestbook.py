@@ -57,7 +57,7 @@ class Author(ndb.Model):
     email = ndb.StringProperty(indexed=False)
 
 class Wine(ndb.Model):
-    wine_type = ndb.StringProperty(indexed=False)
+    wine_type = ndb.StringProperty(indexed=True)
     wine_country = ndb.StringProperty(indexed=False)
     wine_region = ndb.StringProperty(indexed=False)
     wine_variety = ndb.StringProperty(indexed=False)
@@ -117,36 +117,18 @@ class NewWine(webapp2.RequestHandler):
                     identity=users.get_current_user().user_id(),
                     email=users.get_current_user().email())
 
-        greeting.content = self.request.get('content')
+        greeting.wine_type = self.request.get('wine_type')
+        greeting.wine_country = self.request.get('wine_country')
+        greeting.wine_region = self.request.get('wine_region')
+        greeting.wine_variety = self.request.get('wine_variety')
+        greeting.wine_winery = self.request.get('wine_winery')
+        greeting.wine_year = self.request.get('wine_year')
+
+        print("New wine from - " + greeting.wine_winery + "(" + self.request.get('wine_winery') + ")")
+
         greeting.put()
 
         self.redirect('/')
-# [END guestbook]
-
-
-# [START guestbook]
-class Guestbook(webapp2.RequestHandler):
-
-    def post(self):
-        # We set the same parent key on the 'Greeting' to ensure each
-        # Greeting is in the same entity group. Queries across the
-        # single entity group will be consistent. However, the write
-        # rate to a single entity group should be limited to
-        # ~1/second.
-        guestbook_name = self.request.get('guestbook_name',
-                                          DEFAULT_GUESTBOOK_NAME)
-        greeting = Greeting(parent=guestbook_key(guestbook_name))
-
-        if users.get_current_user():
-            greeting.author = Author(
-                    identity=users.get_current_user().user_id(),
-                    email=users.get_current_user().email())
-
-        greeting.content = self.request.get('content')
-        greeting.put()
-
-        query_params = {'guestbook_name': guestbook_name}
-        self.redirect('/?' + urllib.urlencode(query_params))
 # [END guestbook]
 
 class NewEntry(webapp2.RequestHandler):
@@ -157,7 +139,15 @@ class NewEntry(webapp2.RequestHandler):
 
 class Display(webapp2.RequestHandler):
     def get(self):
-        template_values={}
+        wine_category = self.request.get('category', 'red')
+        greetings_query = Wine.query(Wine.wine_type==wine_category, ancestor=wine_key())
+        greetings = greetings_query.fetch(10)
+        print("We have been asked "+ wine_category +" wines :" + str(greetings))
+        
+        template_values = {
+            'wines': greetings,
+        }
+
         template = JINJA_ENVIRONMENT.get_template('display.html')
         self.response.write(template.render(template_values))
 
@@ -171,7 +161,6 @@ class Search(webapp2.RequestHandler):
 # [START app]
 app = webapp2.WSGIApplication([
     ('/', MainPage),
-    ('/sign', Guestbook),
     ('/enter', NewEntry),
     ('/add', NewWine),
     ('/display', Display),

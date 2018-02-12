@@ -35,22 +35,22 @@
   <body>
     <div class="header">
         <div class="container">
-            <h2>Welcome in Romain Amuat's Wine Cave.</h2> 
+            <h2>Welcome in Romain Amuat's <a href="/">Wine Cave</a></h2> 
         </div>
     </div>
     <div class="body">
     <div class="container">
         <div class="container">
-            <p><a href="display?category=red">Browse Red Wines</a></p>
-            <p><a href="display?category=white">Browse White Wines</a></p>
-            <p><a href="display?category=rose">Browse Rosé Wines</a></p>
-            <p><a href="display?category=sparkling">Browse White Wines</a></p>
-        </div>
-        <div class="container">
-            <p><a href="search">Search for wine</a></p>
-        </div>
-        <div class="container">
-            <p><a href="enter">Enter a new wine</a></p>
+            {% for wine in wines %}
+            <div class="wine_entry">
+                <div class="wine_country">{{ wine.wine_country }}</div>
+                <div class="wine_region">{{ wine.wine_region }}</div>
+                <div class="wine_variety">{{ wine.wine_region }}</div>
+                <div class="wine_winery">{{ wine.wine_winery }}</div>
+                <div class="wine_year">{{ wine.wine_year }}</div>
+                <div class="category">{{ wine.wine_category }}</div>
+            </div>    
+            {% endfor %}
         </div>
     </div>
     </div>
