@@ -8,6 +8,9 @@ handlers:
   static_files: favicon.ico
   upload: favicon\.ico
 
+- url: /jquery
+  static_dir: jquery
+
 - url: /bootstrap
   static_dir: bootstrap
 

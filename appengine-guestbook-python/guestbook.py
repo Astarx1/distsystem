@@ -139,15 +139,89 @@ class NewEntry(webapp2.RequestHandler):
 
 class Display(webapp2.RequestHandler):
     def get(self):
-        wine_category = self.request.get('category', 'red')
-        greetings_query = Wine.query(Wine.wine_type==wine_category, ancestor=wine_key())
-        greetings = greetings_query.fetch(10)
-        print("We have been asked "+ wine_category +" wines :" + str(greetings))
+        wine_category = self.request.get('wine_type')
+        wine_country = self.request.get('wine_country')
+        wine_region = self.request.get('wine_region')
+        wine_variety = self.request.get('wine_variety')
+        wine_winery = self.request.get('wine_winery')
+        wine_year = self.request.get('wine_year')
         
-        template_values = {
-            'wines': greetings,
-        }
+        greetings_query = Wine.query(ancestor=wine_key())
+        greetings = greetings_query.fetch()
+        print("We have been asked "+ wine_category +" wines :" + str(greetings))
+        wines = []
 
+        for w in greetings:
+            result = True
+            if wine_category is not None and wine_category is not '' and wine_category is not 'all':
+                if w.wine_type is not None:
+                    if wine_category.lower != w.wine_type.lower() and wine_category.lower() not in w.wine_type.lower():
+                        print("'" + wine_category.lower() + "' not in '" + w.wine_type.lower() + "'")
+                        result = False
+                else:
+                    result = False
+            
+            if wine_country is not None and wine_country is not '':
+                if w.wine_country is not None:
+                    if wine_country.lower() not in w.wine_country.lower():
+                        result = False
+                else:
+                    result = False
+            
+            if wine_region is not None:
+                if w.wine_region is not None:
+                    if wine_region.lower() not in w.wine_region.lower():
+                        result = False
+                else:
+                    result = None
+            
+            if wine_variety is not None:
+                if w.wine_variety is not None:
+                    if wine_variety.lower() not in w.wine_variety.lower():
+                        result = False
+                else:
+                    result = None
+            
+            if wine_winery is not None:
+                if w.wine_winery is not None:
+                    if wine_winery.lower() not in w.wine_winery.lower():
+                        result = False
+                else:
+                    result = False
+            
+            try:
+                if wine_year is not None and int(wine_year) > 0 and wine_year is not '':
+                    if w.wine_year is not None:
+                        try:
+                            int(w.wine_year)
+                        except:
+                            print("Wine bad year format '" + w.wine_year + "'")
+                            result = False
+
+                        if str(wine_year) not in str(w.wine_year):
+                            result = False
+                        else:
+                            print(str(wine_year) + " in " + str(w.wine_year))
+                    else:
+                        result = False
+            except:
+                print("Research bad year format : '" + str(wine_year) + "'")
+
+
+            if result:
+                wines.append(w)
+        
+        message = ''
+        print(len(wines))
+        if len(wines) == 0:
+            message = 'No wine found'
+
+        template_values = {
+            'wines': wines[0:10],
+            'message': message
+        }
+        print(message)
+        
         template = JINJA_ENVIRONMENT.get_template('display.html')
         self.response.write(template.render(template_values))
 

@@ -16,6 +16,9 @@
         margin-bottom: 10px;
         border-left-color: #bbb;
       }
+      .header {
+        margin-bottom:25px;
+      }
       form {
         margin-top: 10px;
       }
@@ -35,23 +38,48 @@
   <body>
     <div class="header">
         <div class="container">
-            <h2>Welcome in Romain Amuat's Wine Cave.</h2> 
+            <h2>Welcome in Romain Amuat's <a href="/">Wine Cave</a></h2> 
         </div>
     </div>
     <div class="body">
     <div class="container">
-        <div class="container">
-            <p><a href="display?category=red">Browse Red Wines</a></p>
-            <p><a href="display?category=white">Browse White Wines</a></p>
-            <p><a href="display?category=rose">Browse Rosé Wines</a></p>
-            <p><a href="display?category=sparkling">Browse White Wines</a></p>
+    <form action="/display" method="GET">
+        <div class="form-group">
+            <label for="wine_country">Country : </label>
+            <input type="text" name="wine_country" class="form-control" id="wine_country" placeholder="France">
         </div>
-        <div class="container">
-            <p><a href="search">Search for wine</a></p>
+        <div class="form-group">
+            <label for="wine_region">Region : </label>
+            <input type="text" name="wine_region" class="form-control" id="wine_region" placeholder="Bordeaux">
         </div>
-        <div class="container">
-            <p><a href="enter">Enter a new wine</a></p>
+        <div class="form-group">
+            <label for="wine_variety">Variety : </label>
+            <input type="text" name="wine_variety" class="form-control" id="wine_variety" placeholder="Pinot">
+        </div> 
+        <div class="form-group">
+            <label for="wine_winery">Winery Name : </label>
+            <input type="text" name="wine_winery" class="form-control" id="wine_winery" placeholder="Bordeaux">
+        </div> 
+        <div class="form-group">
+            <label for="wine_year">Year : </label>
+            <input type="text" name="wine_year" class="form-control" id="wine_year" value="2017">
+        </div> 
+        <br />
+        <div class="form-group">
+            <label for="wine_type">Wine Type :</label>
+            <select class="form-control" name="wine_type" id="wine_type">
+                <option value="red">Red</option>
+                <option value="white">White</option>
+                <option value="rose">Rosé</option>
+                <option value="sparkling">Sparkling</option>
+                <option value="other">Other</option>
+                <option value="">All</option>
+            </select>
         </div>
+        <br />
+        <button type="submit" class="btn btn-default">Submit</button>
+    </form>
+
     </div>
     </div>
   </body>
