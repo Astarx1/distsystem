@@ -43,34 +43,28 @@
 <form action="/add" method="POST">
   <div class="form-group">
     <label for="wine_country">Country : </label>
-    <input type="text" name="wine_country" class="form-control" id="wine_country" placeholder="France">
+    <input type="text" name="wine_country" class="form-control" id="wine_country" placeholder="France" required>
   </div>
   <div class="form-group">
     <label for="wine_region">Region : </label>
-    <input type="text" name="wine_region" class="form-control" id="wine_region" placeholder="Bordeaux">
+    <input type="text" name="wine_region" class="form-control" id="wine_region" placeholder="Bordeaux" require>
   </div>
   <div class="form-group">
     <label for="wine_variety">Variety : </label>
-    <input type="text" name="wine_variety" class="form-control" id="wine_variety" placeholder="Pinot">
+    <input type="text" name="wine_variety" class="form-control" id="wine_variety" placeholder="Pinot" required>
   </div> 
   <div class="form-group">
     <label for="wine_winery">Winery Name : </label>
-    <input type="text" name="wine_winery" class="form-control" id="wine_winery" placeholder="Bordeaux">
+    <input type="text" name="wine_winery" class="form-control" id="wine_winery" placeholder="Bordeaux" required>
   </div> 
   <div class="form-group">
     <label for="wine_year">Year : </label>
-    <input type="text" name="wine_year" class="form-control" id="wine_year" value="2017">
+    <input type="text" name="wine_year" class="form-control" id="wine_year" value="2017" required>
   </div> 
   <br />
   <div class="form-group">
     <label for="wine_type">Wine Type :</label>
-    <select class="form-control" name="wine_type" id="wine_type">
-      <option value="red">Red</option>
-      <option value="white">White</option>
-      <option value="rose">Rosé</option>
-      <option value="sparkling">Sparkling</option>
-      <option value="other">Other</option>
-    </select>
+    <input type="text" class="form-control" name="wine_type" id="wine_type" placeholder="Red" required>
   </div>
   <br />
   <button type="submit" class="btn btn-default">Submit</button>

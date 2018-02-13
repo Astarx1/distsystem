@@ -117,18 +117,19 @@ class NewWine(webapp2.RequestHandler):
                     identity=users.get_current_user().user_id(),
                     email=users.get_current_user().email())
 
-        greeting.wine_type = self.request.get('wine_type')
-        greeting.wine_country = self.request.get('wine_country')
-        greeting.wine_region = self.request.get('wine_region')
-        greeting.wine_variety = self.request.get('wine_variety')
-        greeting.wine_winery = self.request.get('wine_winery')
-        greeting.wine_year = self.request.get('wine_year')
-
-        print("New wine from - " + greeting.wine_winery + "(" + self.request.get('wine_winery') + ")")
-
-        greeting.put()
-
-        self.redirect('/')
+        if self.request.get('wine_type') != '' and self.request.get('wine_country') != '' and self.request.get('wine_region') != '' \
+            and self.request.get('wine_variety') != '' and self.request.get('wine_winery') != '' and self.request.get('wine_year') != '':
+            greeting.wine_type = self.request.get('wine_type')
+            greeting.wine_country = self.request.get('wine_country')
+            greeting.wine_region = self.request.get('wine_region')
+            greeting.wine_variety = self.request.get('wine_variety')
+            greeting.wine_winery = self.request.get('wine_winery')
+            greeting.wine_year = self.request.get('wine_year')
+            print("New wine from - " + greeting.wine_winery + "(" + self.request.get('wine_winery') + ")")
+            greeting.put()
+            self.redirect('/?new_wine=true')
+        else:
+            self.redirect('/?new_wine=false')
 # [END guestbook]
 
 class NewEntry(webapp2.RequestHandler):
