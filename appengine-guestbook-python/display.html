@@ -41,7 +41,6 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Message</h4>
                 </div>
                 <div class="modal-body">
                     <p>{{ message }}</p>
@@ -60,16 +59,26 @@
     <div class="body">
     <div class="container">
         <div class="container">
-            {% for wine in wines %}
-            <div class="wine_entry">
-                <div class="wine_country">{{ wine.wine_country }}</div>
-                <div class="wine_region">{{ wine.wine_region }}</div>
-                <div class="wine_variety">{{ wine.wine_region }}</div>
-                <div class="wine_winery">{{ wine.wine_winery }}</div>
-                <div class="wine_year">{{ wine.wine_year }}</div>
-                <div class="category">{{ wine.wine_category }}</div>
-            </div>    
-            {% endfor %}
+            <table style="width:100%; margin-top: 40px;">
+                <tr>
+                    <th>Country</th>
+                    <th>Region</th>
+                    <th>Variety</th>
+                    <th>Winery</th>
+                    <th>Year</th>
+                    <th>Category</th>
+                </tr>
+                {% for wine in wines %}
+                <tr>
+                    <td>{{ wine.wine_country }}</td>
+                    <td>{{ wine.wine_region }}</td>
+                    <td>{{ wine.wine_region }}</td>
+                    <td>{{ wine.wine_winery }}</td>
+                    <td>{{ wine.wine_year }}</td>
+                    <td>{{ wine.wine_type }}</td>
+                </tr>
+                {% endfor %}
+            </table>
         </div>
     </div>
     </div>

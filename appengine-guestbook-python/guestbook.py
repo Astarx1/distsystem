@@ -24,6 +24,15 @@ from google.appengine.ext import ndb
 import jinja2
 import webapp2
 
+import unicodedata
+
+def remove_accent(input_str):
+    if input_str is None:
+        return
+    else:
+        nfkd_form = unicodedata.normalize('NFKD', unicode(input_str))
+        return u"".join([c for c in nfkd_form if not unicodedata.combining(c)])
+
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
     extensions=['jinja2.ext.autoescape'],
@@ -119,13 +128,12 @@ class NewWine(webapp2.RequestHandler):
 
         if self.request.get('wine_type') != '' and self.request.get('wine_country') != '' and self.request.get('wine_region') != '' \
             and self.request.get('wine_variety') != '' and self.request.get('wine_winery') != '' and self.request.get('wine_year') != '':
-            greeting.wine_type = self.request.get('wine_type')
-            greeting.wine_country = self.request.get('wine_country')
-            greeting.wine_region = self.request.get('wine_region')
-            greeting.wine_variety = self.request.get('wine_variety')
-            greeting.wine_winery = self.request.get('wine_winery')
-            greeting.wine_year = self.request.get('wine_year')
-            print("New wine from - " + greeting.wine_winery + "(" + self.request.get('wine_winery') + ")")
+            greeting.wine_type = remove_accent(self.request.get('wine_type'))
+            greeting.wine_country = remove_accent(self.request.get('wine_country'))
+            greeting.wine_region = remove_accent(self.request.get('wine_region'))
+            greeting.wine_variety = remove_accent(self.request.get('wine_variety'))
+            greeting.wine_winery = remove_accent(self.request.get('wine_winery'))
+            greeting.wine_year = remove_accent(self.request.get('wine_year'))
             greeting.put()
             self.redirect('/?new_wine=true')
         else:
@@ -140,16 +148,16 @@ class NewEntry(webapp2.RequestHandler):
 
 class Display(webapp2.RequestHandler):
     def get(self):
-        wine_category = self.request.get('wine_type')
-        wine_country = self.request.get('wine_country')
-        wine_region = self.request.get('wine_region')
-        wine_variety = self.request.get('wine_variety')
-        wine_winery = self.request.get('wine_winery')
-        wine_year = self.request.get('wine_year')
+        wine_category = remove_accent(self.request.get('wine_type'))
+        wine_country = remove_accent(self.request.get('wine_country'))
+        wine_region = remove_accent(self.request.get('wine_region'))
+        wine_variety = remove_accent(self.request.get('wine_variety'))
+        wine_winery = remove_accent(self.request.get('wine_winery'))
+        wine_year = remove_accent(self.request.get('wine_year'))
         
         greetings_query = Wine.query(ancestor=wine_key())
         greetings = greetings_query.fetch()
-        print("We have been asked "+ wine_category +" wines :" + str(greetings))
+
         wines = []
 
         for w in greetings:
@@ -157,7 +165,6 @@ class Display(webapp2.RequestHandler):
             if wine_category is not None and wine_category is not '' and wine_category is not 'all':
                 if w.wine_type is not None:
                     if wine_category.lower != w.wine_type.lower() and wine_category.lower() not in w.wine_type.lower():
-                        print("'" + wine_category.lower() + "' not in '" + w.wine_type.lower() + "'")
                         result = False
                 else:
                     result = False
@@ -196,7 +203,6 @@ class Display(webapp2.RequestHandler):
                         try:
                             int(w.wine_year)
                         except:
-                            print("Wine bad year format '" + w.wine_year + "'")
                             result = False
 
                         if str(wine_year) not in str(w.wine_year):
@@ -206,16 +212,14 @@ class Display(webapp2.RequestHandler):
                     else:
                         result = False
             except:
-                print("Research bad year format : '" + str(wine_year) + "'")
-
+                pass
 
             if result:
                 wines.append(w)
         
         message = ''
-        print(len(wines))
         if len(wines) == 0:
-            message = 'No wine found'
+            message = 'No wine found.'
 
         template_values = {
             'wines': wines[0:10],
