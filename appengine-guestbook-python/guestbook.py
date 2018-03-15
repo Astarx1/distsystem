@@ -95,13 +95,16 @@ class Wine(ndb.Model):
     wine_variety = ndb.StringProperty(indexed=False)
     wine_winery = ndb.StringProperty(indexed=False)
     wine_year = ndb.StringProperty(indexed=False)
-
     wine_price = ndb.StringProperty(indexed=False)
 
 
 def CartEntry(ndb.Model):
     wine_id = ndb.IntegerProperty()
     owner = ndb.StringProperty()
+
+    @classmethod
+    def get_from_nickname(cls, ancestor, name):
+        return cls.query(ancestor=ancestor_key, CartEntry.nickname==name).fetch()
 
 
 class Greeting(ndb.Model):
@@ -114,7 +117,6 @@ class Greeting(ndb.Model):
 
 # [START main_page]
 class MainPage(webapp2.RequestHandler):
-
     def get(self):
         guestbook_name = self.request.get('guestbook_name',
                                           DEFAULT_GUESTBOOK_NAME)
@@ -142,6 +144,7 @@ class MainPage(webapp2.RequestHandler):
         self.response.write(template.render(template_values))
 # [END main_page]
 
+
 # [START guestbook]
 class NewWine(webapp2.RequestHandler):
     def post(self):
@@ -158,20 +161,22 @@ class NewWine(webapp2.RequestHandler):
         #            email=users.get_current_user().email())
 
         if self.request.get('wine_type') != '' and self.request.get('wine_country') != '' and self.request.get('wine_region') != '' \
-            and self.request.get('wine_variety') != '' and self.request.get('wine_winery') != '' and self.request.get('wine_year') != '':
+            and self.request.get('wine_variety') != '' and self.request.get('wine_winery') != '' and self.request.get('wine_year') != '' and self.request.get('wine_price') != '':
             greeting.wine_type = remove_accent(self.request.get('wine_type'))
             greeting.wine_country = remove_accent(self.request.get('wine_country'))
             greeting.wine_region = remove_accent(self.request.get('wine_region'))
             greeting.wine_variety = remove_accent(self.request.get('wine_variety'))
             greeting.wine_winery = remove_accent(self.request.get('wine_winery'))
             greeting.wine_year = remove_accent(self.request.get('wine_year'))
+            greeting.wine_price = remove_accent(self.request.get('wine_price'))
+
             greeting.put()
             self.redirect('/?new_wine=true')
         else:
             self.redirect('/?new_wine=false')
 # [END guestbook]
 
-class NewCartEntry(webapp2.RequestHandler):
+class CartEntry(webapp2.RequestHandler):
     def post(self):
         greeting = CartEntry(parent=cart_key())
         user, link, nickname = get_user()
@@ -182,6 +187,27 @@ class NewCartEntry(webapp2.RequestHandler):
             greeting.put()
 
         self.redirect('/')
+
+    def get(self):
+        user, link, nickname = get_user()
+        ret = []
+
+        if user:
+            greetings_query = CartEntry.query(ancestor=cart_key())
+            greetings = greetings_query.fetch()
+        
+            wines_query = Wine.query(ancestor=wine_key())
+            wines = greetings_query.fetch()
+
+            ws = {}
+            for w in wines:
+                wines[w.key.id] = {"type": w.wine_type, "country": w.wine_country, "region": w.wine_region, "variety": w.wine_variety, "winery": w.wine_winery, "year": w.wine_year, "price":w.wine_price}
+
+            for w in greetings:
+                if w.wine_id in ws:
+                    ret.append(ws[w.wine_id])
+
+        return ret
 
 
 class NewEntry(webapp2.RequestHandler):
@@ -287,6 +313,7 @@ app = webapp2.WSGIApplication([
     ('/enter', NewEntry),
     ('/add', NewWine),
     ('/display', Display),
-    ('/search', Search)
+    ('/search', Search),
+    ('/cart', CartEntry)
 ], debug=True)
 # [END app]
