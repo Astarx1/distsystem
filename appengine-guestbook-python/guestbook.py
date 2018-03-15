@@ -26,12 +26,31 @@ import webapp2
 
 import unicodedata
 
+
+def get_user():
+    user = users.get_current_user()
+    url = None
+    url_linktext = None
+    nickname = None
+
+    if user:
+        url = user.create_logout_url(self.request.uri)
+        nickname = user.nickname()
+        url_linktext = 'Logout'
+    else:
+        url = user.create_login_url(self.request.uri)
+        url_linktext = 'Login'
+
+    return url, url_linktext, nickname
+
+
 def remove_accent(input_str):
     if input_str is None:
         return
     else:
         nfkd_form = unicodedata.normalize('NFKD', unicode(input_str))
         return u"".join([c for c in nfkd_form if not unicodedata.combining(c)])
+
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
@@ -47,6 +66,7 @@ DEFAULT_GUESTBOOK_NAME = 'default_guestbook'
 # will be consistent. However, the write rate should be limited to
 # ~1/second.
 
+
 def guestbook_key(guestbook_name=DEFAULT_GUESTBOOK_NAME):
     """Constructs a Datastore key for a Guestbook entity.
 
@@ -54,9 +74,11 @@ def guestbook_key(guestbook_name=DEFAULT_GUESTBOOK_NAME):
     """
     return ndb.Key('Guestbook', guestbook_name)
 
-
 def wine_key():
     return ndb.Key('Wines', 'wine_storage')
+
+def cart_key():
+    return ndb.key('Cart', 'cart_storage')
 
 
 # [START greeting]
@@ -65,6 +87,7 @@ class Author(ndb.Model):
     identity = ndb.StringProperty(indexed=False)
     email = ndb.StringProperty(indexed=False)
 
+
 class Wine(ndb.Model):
     wine_type = ndb.StringProperty(indexed=True)
     wine_country = ndb.StringProperty(indexed=False)
@@ -72,6 +95,14 @@ class Wine(ndb.Model):
     wine_variety = ndb.StringProperty(indexed=False)
     wine_winery = ndb.StringProperty(indexed=False)
     wine_year = ndb.StringProperty(indexed=False)
+
+    wine_price = ndb.StringProperty(indexed=False)
+
+
+def CartEntry(ndb.Model):
+    wine_id = ndb.IntegerProperty()
+    owner = ndb.StringProperty()
+
 
 class Greeting(ndb.Model):
     """A main model for representing an individual Guestbook entry."""
@@ -121,10 +152,10 @@ class NewWine(webapp2.RequestHandler):
         # ~1/second.
         greeting = Wine(parent=wine_key())
 
-        if users.get_current_user():
-            greeting.author = Author(
-                    identity=users.get_current_user().user_id(),
-                    email=users.get_current_user().email())
+        #if users.get_current_user():
+        #    greeting.author = Author(
+        #            identity=users.get_current_user().user_id(),
+        #            email=users.get_current_user().email())
 
         if self.request.get('wine_type') != '' and self.request.get('wine_country') != '' and self.request.get('wine_region') != '' \
             and self.request.get('wine_variety') != '' and self.request.get('wine_winery') != '' and self.request.get('wine_year') != '':
@@ -139,6 +170,19 @@ class NewWine(webapp2.RequestHandler):
         else:
             self.redirect('/?new_wine=false')
 # [END guestbook]
+
+class NewCartEntry(webapp2.RequestHandler):
+    def post(self):
+        greeting = CartEntry(parent=cart_key())
+        user, link, nickname = get_user()
+
+        if self.request.get('wine_id') != '' and nickname != None:
+            greeting.wine_id = remove_accent(self.request.get('wine_id'))
+            greeting.owner = nickname
+            greeting.put()
+
+        self.redirect('/')
+
 
 class NewEntry(webapp2.RequestHandler):
     def get(self):
