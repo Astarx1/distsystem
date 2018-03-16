@@ -63,6 +63,7 @@
             <table id="example" class="display" style="width:100%">
                 <thead>
                     <tr>
+                        <th>Number item(s)</th>
                         <th>Type</th>
                         <th>Country</th>
                         <th>Region</th>
@@ -93,8 +94,8 @@
 
             var value = 0;
             data.forEach(function(item){
-                $("#tbody_table").append("<tr class=\"cart_element\"><td>" + item.wine.type + "</td><td>" + item.wine.country + "</td><td>" + item.wine.region + "</td><td>" + item.wine.winery + "</td><td>" + item.wine.year + "</td><td>" + item.wine.price + "</td><td><button onclick=\"remove_item_from_cart(" + item.cart_entry + ")\">Remove</remove></tr>");
-                value += parseInt(item.wine.price);
+                $("#tbody_table").append("<tr class=\"cart_element\"><td>"+ item.cart_entry.length +"</td><td>" + item.wine.type + "</td><td>" + item.wine.country + "</td><td>" + item.wine.region + "</td><td>" + item.wine.winery + "</td><td>" + item.wine.year + "</td><td>" + item.wine.price + "</td><td><button onclick=\"remove_item_from_cart('" + item.cart_entry.join(",") + "')\">Remove</remove></tr>");
+                value += item.cart_entry.length*parseInt(item.wine.price);
             });
             $("#total_value").text(value + " $");
         });
@@ -121,12 +122,14 @@
     }
 
     function remove_item_from_cart(id) {
-        $.ajax({
-            url:'api/cart?id=' + id,
-            type: 'DELETE',
-            success: function () { myf(); }
-        });    
-        alert("Checkout Done");
+        ids = id.split(",")
+        ids.forEach(function(item) {
+            $.ajax({
+                url:'api/cart?id=' + item,
+                type: 'DELETE',
+                success: function () { myf(); }
+            });
+        })
     }
 
     </script>

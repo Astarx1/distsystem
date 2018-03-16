@@ -25,7 +25,8 @@ import jinja2
 import webapp2
 import json
 import unicodedata
-
+import time
+import copy
 
 def get_user(request):
     user = users.get_current_user()
@@ -80,6 +81,8 @@ def wine_key():
 def cart_key():
     return ndb.Key('Cart', 'cart_storage')
 
+def sales_key():
+    return ndb.Key('Sales', 'sales_storage')
 
 # [START greeting]
 class Author(ndb.Model):
@@ -108,6 +111,13 @@ class CartEntry(ndb.Model):
 
     # @classmethod
     # def get_from_id(cls, ancestor, entry_id)
+
+
+class Sales(ndb.Model):
+    wines_id = ndb.StringProperty()
+    owner = ndb.StringProperty()
+    timestamp = ndb.IntegerProperty()
+    price = ndb.IntegerProperty()
 
 
 class Greeting(ndb.Model):
@@ -229,10 +239,14 @@ class Carthdl(webapp2.RequestHandler):
             for w in wines:
                 ws[w.key.id()] = {"wine_id":w.key.id(), "type": w.wine_type, "country": w.wine_country, "region": w.wine_region, "variety": w.wine_variety, "winery": w.wine_winery, "year": w.wine_year, "price":w.wine_price}
 
+            already_in_cart = {}
             for w in greetings:
-                if w.wine_id in ws:
+                if w.wine_id in ws and w.wine_id not in already_in_cart:
+                    ret.append({"wine": ws[w.wine_id], "cart_entry":[w.key.id()]})
+                    already_in_cart[w.wine_id] = len(ret)-1
 
-                    ret.append({"wine": ws[w.wine_id], "cart_entry":w.key.id()})
+                elif w.wine_id in ws:
+                    ret[already_in_cart[w.wine_id]]["cart_entry"].append(w.key.id())
 
         self.response.content_type = "application/json"
         self.response.write(json.dumps(ret, ensure_ascii=False))
@@ -252,9 +266,34 @@ class Carthdl(webapp2.RequestHandler):
                 
             print("User authentified")
             if self.request.get('checkout') != '':
+                user = users.get_current_user()
+                url = None
+                url_linktext = None
+                nickname = None
+                            
+                if user:
+                    url = users.create_logout_url(self.request.uri)
+                    nickname = user.nickname()
+                    url_linktext = 'Logout'
+                else:
+                    url = users.create_login_url(self.request.uri)
+                    url_linktext = 'Login'
+        
+                if self.request.get('wine_id') != '' and nickname != None:
+                    greeting.wine_id = int(self.request.get('wine_id'))
+                    greeting.owner = nickname
+                    greeting.put()
+
                 entries = CartEntry.get_from_nickname(name=nickname, ancestor=cart_key())
+                greeting = Sales(parent=sales_key())
+                greeting.owner = nickname
+                ids_wine_to_save = []
                 for e in entries:
+                    ids_wine_to_save.append(str(e.wine_id))
                     e.key.delete()
+                greeting.wines_id = ",".join(ids_wine_to_save)
+                greeting.timestamp = int(time.time())
+                greeting.put()
                 print("Checkout by "+ nickname)
 
             elif self.request.get('id') != '':
@@ -274,6 +313,42 @@ class Carthdl(webapp2.RequestHandler):
             url_linktext = 'Login'
 
         self.redirect("/cart")
+
+
+class SalesAPI(webapp2.RequestHandler):
+    def get(self):
+        greeting = Sales.query(ancestor=sales_key()).fetch()
+        wines = Wine.query(ancestor=wine_key()).fetch()
+        ws = {}
+        for w in wines:
+            ws[w.key.id()] = {"wine_id":w.key.id(), "type": w.wine_type, "country": w.wine_country, "region": w.wine_region, "variety": w.wine_variety, "winery": w.wine_winery, "year": w.wine_year, "price":w.wine_price, "number":0}
+
+        ret = []
+        for g in greeting:
+            if g.wines_id is None:
+                continue
+            s = []
+            s = {"buyer": g.owner, "timestamp":g.timestamp, "wines":[]}
+            print(g.wines_id)    
+            ws_id = g.wines_id.split(",") 
+            already_in_wines = {}
+            
+            print(str(ws_id))
+            for bb in ws_id:
+                if bb is u'':
+                    continue
+                elif long(bb) in ws and long(bb) not in already_in_wines:
+                    s["wines"].append(copy.deepcopy(ws[long(bb)]))
+                    already_in_wines[long(bb)] = len(s["wines"]) - 1
+                    s["wines"][already_in_wines[long(bb)]]["number"] = 1
+                elif long(bb) in ws:
+                    s["wines"][already_in_wines[long(bb)]]["number"] += 1
+            
+            ret.append(s)
+        
+        self.response.content_type = "application/json"
+        self.response.write(json.dumps(ret, ensure_ascii=False))
+
 
 class NewEntry(webapp2.RequestHandler):
     def get(self):
@@ -387,6 +462,7 @@ app = webapp2.WSGIApplication([
     ('/display', Display),
     ('/search', Search),
     ('/cart', Cart),
+    ('/api/sales', SalesAPI),
     ('/api/cart', Carthdl)
 ], debug=True)
 # [END app]
