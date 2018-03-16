@@ -256,15 +256,12 @@ class Carthdl(webapp2.RequestHandler):
         url = None
         url_linktext = None
         nickname = None
-           
-        print("Delete request received")
 
         if user:
             url = users.create_logout_url(self.request.uri)
             nickname = user.nickname()
             url_linktext = 'Logout'
                 
-            print("User authentified")
             if self.request.get('checkout') != '':
                 user = users.get_current_user()
                 url = None
@@ -294,19 +291,12 @@ class Carthdl(webapp2.RequestHandler):
                 greeting.wines_id = ",".join(ids_wine_to_save)
                 greeting.timestamp = int(time.time())
                 greeting.put()
-                print("Checkout by "+ nickname)
 
             elif self.request.get('id') != '':
                 entries = CartEntry.get_from_nickname(name=nickname, ancestor=cart_key())
-                for e in entries:
-                    print("Key : " + str(e.key.id()) + " - " + str(type(e.key.id())))
-
-                print("We received the key : " + str(long(self.request.get('id'))))
                 c = CartEntry.get_by_id(long(self.request.get('id')), parent=cart_key())
-                print("We found the item : " + str(c))
                 if c:
                     c.key.delete()
-                    print("Erased " + str(self.request.get('id')))
 
         else:
             url = users.create_logout_url(self.request.uri)
@@ -329,11 +319,9 @@ class SalesAPI(webapp2.RequestHandler):
                 continue
             s = []
             s = {"buyer": g.owner, "timestamp":g.timestamp, "wines":[]}
-            print(g.wines_id)    
             ws_id = g.wines_id.split(",") 
             already_in_wines = {}
             
-            print(str(ws_id))
             for bb in ws_id:
                 if bb is u'':
                     continue
@@ -453,6 +441,11 @@ class Cart(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('cart.html')
         self.response.write(template.render(template_values))
 
+class SalesView(webapp2.RequestHandler):
+    def get(self):
+        template_values = {}
+        template = JINJA_ENVIRONMENT.get_template('sales.html')
+        self.response.write(template.render(template_values))
 
 # [START app]
 app = webapp2.WSGIApplication([
@@ -463,6 +456,7 @@ app = webapp2.WSGIApplication([
     ('/search', Search),
     ('/cart', Cart),
     ('/api/sales', SalesAPI),
-    ('/api/cart', Carthdl)
+    ('/api/cart', Carthdl),
+    ('/sales', SalesView)
 ], debug=True)
 # [END app]

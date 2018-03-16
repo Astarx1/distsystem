@@ -63,22 +63,16 @@
             <table id="example" class="display" style="width:100%">
                 <thead>
                     <tr>
-                        <th>Number item(s)</th>
-                        <th>Type</th>
-                        <th>Country</th>
-                        <th>Region</th>
-                        <th>Winery</th>
-                        <th>Year</th>
-                        <th>Price</th>
-                        <th></th>
+                        <th>ID</th>
+                        <th>Time</th>
+                        <th>Value</th>
+                        <th>wines</th>
                     </tr>
                 </thead>
                 <tbody id="tbody_table">
                 </tbody>
             </table>
             <br />
-            Total : <p id="total_value">0 $</p><br />
-            <button onclick="proceed_to_checkout()">Proceed to Checkout</button>
         </div>
     </div>
     </div>
@@ -89,14 +83,19 @@
     });
 
     function myf() {
-        $.get("api/cart", function(data) { 
+        $.get("api/sales", function(data) { 
             $(".cart_element").remove();
-            var value = 0;
+
             data.forEach(function(item){
-                $("#tbody_table").append("<tr class=\"cart_element\"><td>"+ item.cart_entry.length +"</td><td>" + item.wine.type + "</td><td>" + item.wine.country + "</td><td>" + item.wine.region + "</td><td>" + item.wine.winery + "</td><td>" + item.wine.year + "</td><td>" + item.wine.price + "</td><td><button onclick=\"remove_item_from_cart('" + item.cart_entry.join(",") + "')\">Remove</remove></tr>");
-                value += item.cart_entry.length*parseInt(item.wine.price);
+                var value = 0;
+                var wines = []
+                item.wines.forEach(function(item) {
+                    value += item["number"] * parseInt(item.price); 
+                    wines.push(item.winery);
+                })
+                d = new Date(parseInt(item.timestamp)*1000)
+                $("#tbody_table").append("<tr class=\"cart_element\"><td>" + item.buyer +"</td><td>"+ [d.getFullYear(), d.getMonth()+1, d.getDate()] +"</td><td>"+ value +"</td><td>"+ wines +"</td></tr>");
             });
-            $("#total_value").text(value + " $");
         });
     }
 
@@ -124,7 +123,7 @@
             $.ajax({
                 url:'api/cart?id=' + item,
                 type: 'DELETE',
-                complete: function () { myf2(); myf(); }
+                success: function () { myf(); }
             });
         })
     }
