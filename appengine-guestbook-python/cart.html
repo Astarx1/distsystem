@@ -63,16 +63,21 @@
             <table id="example" class="display" style="width:100%">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Position</th>
-                        <th>Office</th>                                                                                      <th>Age</th>
-                        <th>Start date</th>
-                        <th>Salary</th>
+                        <th>Type</th>
+                        <th>Country</th>
+                        <th>Region</th>
+                        <th>Winery</th>
+                        <th>Year</th>
+                        <th>Price</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody id="tbody_table">
-                <tbody>
-            <table>
+                </tbody>
+            </table>
+            <br />
+            Total : <p id="total_value">0 $</p><br />
+            <button onclick="proceed_to_checkout()">Proceed to Checkout</button>
         </div>
     </div>
     </div>
@@ -82,16 +87,48 @@
         myf();
     });
 
-    function myf(id) {
+    function myf() {
         $.get("api/cart", function(data) { 
+            $(".cart_element").remove();
+
+            var value = 0;
             data.forEach(function(item){
-                $("#tbody_table").append("<tr><td>" + item.wine.type + "</td><td>" + item.wine.country + "</td><td>" + item.wine.region + "</td><td>" + item.wine.winery + "</td><td>" + item.wine.wine_price + "</td></tr>");
+                $("#tbody_table").append("<tr class=\"cart_element\"><td>" + item.wine.type + "</td><td>" + item.wine.country + "</td><td>" + item.wine.region + "</td><td>" + item.wine.winery + "</td><td>" + item.wine.year + "</td><td>" + item.wine.price + "</td><td><button onclick=\"remove_item_from_cart(" + item.cart_entry + ")\">Remove</remove></tr>");
+                value += parseInt(item.wine.price);
             });
+            $("#total_value").text(value + " $");
         });
         console.log("Request Wine add sent")
     }
 
-    
+     function myf2() {
+        $.get("api/cart", function(data) { 
+            $(".cart_element").remove();
+
+            data.forEach(function(item){
+                $("#tbody_table").append("<tr class=\"cart_element\"><td>" + item.wine.type + "</td><td>" + item.wine.country + "</td><td>" + item.wine.region + "</td><td>" + item.wine.winery + "</td><td>" + item.wine.year + "</td><td>" + item.wine.price + "</td><td><button onclick=\"remove_item_from_cart(" + item.cart_entry + ")\">Remove</remove></tr>");
+            });
+        });
+        console.log("Request Wine add sent")
+    }   
+
+    function proceed_to_checkout() {
+        $.ajax({
+            url:'api/cart?checkout=True',
+            type: 'DELETE',
+            complete: function() { myf2(); $("#total_value").text("You have been factured"); }
+        });    
+    }
+
+    function remove_item_from_cart(id) {
+        $.ajax({
+            url:'api/cart?id=' + id,
+            type: 'DELETE',
+            success: function () { myf(); }
+        });    
+        alert("Checkout Done");
+    }
+
     </script>
 {% endautoescape %}
 </html>

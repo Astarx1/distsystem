@@ -106,6 +106,9 @@ class CartEntry(ndb.Model):
     def get_from_nickname(cls, ancestor, name):
         return cls.query(CartEntry.owner==name, ancestor=ancestor).fetch()
 
+    # @classmethod
+    # def get_from_id(cls, ancestor, entry_id)
+
 
 class Greeting(ndb.Model):
     """A main model for representing an individual Guestbook entry."""
@@ -207,7 +210,6 @@ class Carthdl(webapp2.RequestHandler):
         nickname = None
          
         if user:
-            url = users.create_logout_url(self.request.uri)
             nickname = user.nickname()
             url_linktext = 'Logout'
         else:
@@ -235,6 +237,43 @@ class Carthdl(webapp2.RequestHandler):
         self.response.content_type = "application/json"
         self.response.write(json.dumps(ret, ensure_ascii=False))
 
+    def delete(self): 
+        user = users.get_current_user()
+        url = None
+        url_linktext = None
+        nickname = None
+           
+        print("Delete request received")
+
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            nickname = user.nickname()
+            url_linktext = 'Logout'
+                
+            print("User authentified")
+            if self.request.get('checkout') != '':
+                entries = CartEntry.get_from_nickname(name=nickname, ancestor=cart_key())
+                for e in entries:
+                    e.key.delete()
+                print("Checkout by "+ nickname)
+
+            elif self.request.get('id') != '':
+                entries = CartEntry.get_from_nickname(name=nickname, ancestor=cart_key())
+                for e in entries:
+                    print("Key : " + str(e.key.id()) + " - " + str(type(e.key.id())))
+
+                print("We received the key : " + str(long(self.request.get('id'))))
+                c = CartEntry.get_by_id(long(self.request.get('id')), parent=cart_key())
+                print("We found the item : " + str(c))
+                if c:
+                    c.key.delete()
+                    print("Erased " + str(self.request.get('id')))
+
+        else:
+            url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Login'
+
+        self.redirect("/cart")
 
 class NewEntry(webapp2.RequestHandler):
     def get(self):

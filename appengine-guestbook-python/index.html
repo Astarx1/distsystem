@@ -72,7 +72,7 @@
   <script>
 $(document).ready(function() {
     $.get( "api/cart", function( data ) {
-          $('#nb_cart').text(data.length)
+          $('#nb_cart').text("Cart ("+ data.length +")")
           console.log( "Load was performed." );
     });
 });
