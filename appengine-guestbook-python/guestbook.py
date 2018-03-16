@@ -23,11 +23,11 @@ from google.appengine.ext import ndb
 
 import jinja2
 import webapp2
-
+import json
 import unicodedata
 
 
-def get_user():
+def get_user(request):
     user = users.get_current_user()
     url = None
     url_linktext = None
@@ -41,7 +41,7 @@ def get_user():
         url = user.create_login_url(self.request.uri)
         url_linktext = 'Login'
 
-    return url, url_linktext, nickname
+    return user, url, url_linktext, nickname
 
 
 def remove_accent(input_str):
@@ -78,7 +78,7 @@ def wine_key():
     return ndb.Key('Wines', 'wine_storage')
 
 def cart_key():
-    return ndb.key('Cart', 'cart_storage')
+    return ndb.Key('Cart', 'cart_storage')
 
 
 # [START greeting]
@@ -98,13 +98,13 @@ class Wine(ndb.Model):
     wine_price = ndb.StringProperty(indexed=False)
 
 
-def CartEntry(ndb.Model):
+class CartEntry(ndb.Model):
     wine_id = ndb.IntegerProperty()
     owner = ndb.StringProperty()
 
     @classmethod
     def get_from_nickname(cls, ancestor, name):
-        return cls.query(ancestor=ancestor_key, CartEntry.nickname==name).fetch()
+        return cls.query(CartEntry.owner==name, ancestor=ancestor).fetch()
 
 
 class Greeting(ndb.Model):
@@ -172,42 +172,68 @@ class NewWine(webapp2.RequestHandler):
 
             greeting.put()
             self.redirect('/?new_wine=true')
-        else:
+        else: 
             self.redirect('/?new_wine=false')
 # [END guestbook]
 
-class CartEntry(webapp2.RequestHandler):
+class Carthdl(webapp2.RequestHandler):
     def post(self):
         greeting = CartEntry(parent=cart_key())
-        user, link, nickname = get_user()
-
+        user = users.get_current_user()
+        url = None
+        url_linktext = None
+        nickname = None
+                            
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            nickname = user.nickname()
+            url_linktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+        
         if self.request.get('wine_id') != '' and nickname != None:
-            greeting.wine_id = remove_accent(self.request.get('wine_id'))
+            greeting.wine_id = int(self.request.get('wine_id'))
             greeting.owner = nickname
             greeting.put()
+            print("Wine added to cart")
 
         self.redirect('/')
 
     def get(self):
-        user, link, nickname = get_user()
+        user = users.get_current_user()
+        url = None
+        url_linktext = None
+        nickname = None
+         
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            nickname = user.nickname()
+            url_linktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+
         ret = []
 
         if user:
-            greetings_query = CartEntry.query(ancestor=cart_key())
-            greetings = greetings_query.fetch()
+            greetings_query = CartEntry.get_from_nickname(name=nickname, ancestor=cart_key())
+            greetings = greetings_query
         
             wines_query = Wine.query(ancestor=wine_key())
-            wines = greetings_query.fetch()
+            wines = wines_query.fetch()
 
             ws = {}
             for w in wines:
-                wines[w.key.id] = {"type": w.wine_type, "country": w.wine_country, "region": w.wine_region, "variety": w.wine_variety, "winery": w.wine_winery, "year": w.wine_year, "price":w.wine_price}
+                ws[w.key.id()] = {"wine_id":w.key.id(), "type": w.wine_type, "country": w.wine_country, "region": w.wine_region, "variety": w.wine_variety, "winery": w.wine_winery, "year": w.wine_year, "price":w.wine_price}
 
             for w in greetings:
                 if w.wine_id in ws:
-                    ret.append(ws[w.wine_id])
 
-        return ret
+                    ret.append({"wine": ws[w.wine_id], "cart_entry":w.key.id()})
+
+        self.response.content_type = "application/json"
+        self.response.write(json.dumps(ret, ensure_ascii=False))
 
 
 class NewEntry(webapp2.RequestHandler):
@@ -307,6 +333,13 @@ class Search(webapp2.RequestHandler):
         self.response.write(template.render(template_values))
 
 
+class Cart(webapp2.RequestHandler):
+    def get(self):
+        template_values={}
+        template = JINJA_ENVIRONMENT.get_template('cart.html')
+        self.response.write(template.render(template_values))
+
+
 # [START app]
 app = webapp2.WSGIApplication([
     ('/', MainPage),
@@ -314,6 +347,7 @@ app = webapp2.WSGIApplication([
     ('/add', NewWine),
     ('/display', Display),
     ('/search', Search),
-    ('/cart', CartEntry)
+    ('/cart', Cart),
+    ('/api/cart', Carthdl)
 ], debug=True)
 # [END app]

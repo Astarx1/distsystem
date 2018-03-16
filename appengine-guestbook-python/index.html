@@ -5,6 +5,9 @@
     <!-- [START css] -->
     <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap-responsive.css">
+    <script src="/jquery/jquery.js"></script>
+    <script src="/bootstrap/js/bootstrap.js"> </script>
+
     <!-- [END css] -->
     <style type="text/css">
       body {
@@ -36,13 +39,18 @@
     </style>
   </head>
   <body>
-    <div class="header">
-        <div class="container">
-            <h2>Welcome in Romain Amuat's Wine Cave.</h2> 
+    <div class="navbar">
+        <div class="navbar-left">
+            <h4>Welcome in Romain Amuat's Wine Cave.</h4>
+        </div>
+
+        <div class="navbar-right">
+            [<a href="cart" id="nb_cart"></a>] <a href="{{ url }}">{{ url_linktext }}</a>
         </div>
     </div>
     <div class="body">
     <div class="container">
+        <br />
         <div class="container">
             <p><a href="display?wine_type=red">Browse Red Wines</a></p>
             <p><a href="display?wine_type=white">Browse White Wines</a></p>
@@ -58,6 +66,15 @@
     </div>
     </div>
   </body>
-{% endautoescape %}
-<html>
+
+  {% endautoescape %}
+
+  <script>
+$(document).ready(function() {
+    $.get( "api/cart", function( data ) {
+          $('#nb_cart').text(data.length)
+          console.log( "Load was performed." );
+    });
+});
+  </script>
 </html>

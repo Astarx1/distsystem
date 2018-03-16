@@ -7,6 +7,7 @@
     <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap-responsive.css">
     <script src="/jquery/jquery.js"></script>
     <script src="/bootstrap/js/bootstrap.js"> </script>
+    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"> </script>
     <!-- [END css] -->
     <style type="text/css">
       body {
@@ -59,42 +60,34 @@
     <div class="body">
     <div class="container">
         <div class="container">
-            <table style="width:100%; margin-top: 40px;">
-                <tr>
-                    <th>Country</th>
-                    <th>Region</th>
-                    <th>Variety</th>
-                    <th>Winery</th>
-                    <th>Year</th>
-                    <th>Category</th>
-                    <th></th>
-                </tr>
-                {% for wine in wines %}
-                <tr>
-                    <td>{{ wine.wine_country }}</td>
-                    <td>{{ wine.wine_region }}</td>
-                    <td>{{ wine.wine_region }}</td>
-                    <td>{{ wine.wine_winery }}</td>
-                    <td>{{ wine.wine_year }}</td>
-                    <td>{{ wine.wine_type }}</td>
-                    <td> <button type="button" onclick="myf({{ wine.key.id() }})">Add to cart</button> </td>
-                </tr>
-                {% endfor %}
-            </table>
+            <table id="example" class="display" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Position</th>
+                        <th>Office</th>                                                                                      <th>Age</th>
+                        <th>Start date</th>
+                        <th>Salary</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody_table">
+                <tbody>
+            <table>
         </div>
     </div>
     </div>
   </body>
     <script>
     $( document ).ready(function() {
-        if ('{{ message }}' !== '') {
-            console.log("Launch...");
-            $('#myModal').modal();
-        }
+        myf();
     });
 
     function myf(id) {
-        $.post("api/cart?wine_id=" + id);
+        $.get("api/cart", function(data) { 
+            data.forEach(function(item){
+                $("#tbody_table").append("<tr><td>" + item.wine.type + "</td><td>" + item.wine.country + "</td><td>" + item.wine.region + "</td><td>" + item.wine.winery + "</td><td>" + item.wine.wine_price + "</td></tr>");
+            });
+        });
         console.log("Request Wine add sent")
     }
 
