@@ -1,0 +1,3 @@
+python main.py --input $BUCKET/SubmissionDataset.csv --output ./test.csv --runner DataflowRunner --purchased_together --project $PROJECT --temp_location $BUCKET/temp --output $BUCKET/results/output
+
+python main.py --input SubmissionDataset.csv --output ./test.csv --runner Direct --purchased_together
